@@ -762,6 +762,31 @@ test "organize imports - edge cases" {
     );
 }
 
+test "organize imports - no action when already organized" {
+    // Single import plus the trailing blank line that organize would normalize to.
+    // https://github.com/zigtools/zls/issues/2523
+    try testOrganizeImportsNoAction(
+        \\const a = @import("a");
+        \\
+        \\
+    );
+    // Sorted imports from different kinds with the expected group separator and trailing blank line.
+    try testOrganizeImportsNoAction(
+        \\const std = @import("std");
+        \\
+        \\const abc = @import("abc.zig");
+        \\
+        \\
+    );
+    // Imports already sorted, separated from following decls by the expected blank line.
+    try testOrganizeImportsNoAction(
+        \\const std = @import("std");
+        \\
+        \\fn main() void {}
+        \\
+    );
+}
+
 test "convert multiline string literal" {
     try testConvertString(
         \\const foo = \\Hell<cursor>o
@@ -958,6 +983,35 @@ fn testAutofix(before: []const u8, after: []const u8) !void {
 
 fn testOrganizeImports(before: []const u8, after: []const u8) !void {
     try testDiagnostic(before, after, .{ .filter_kind = .@"source.organizeImports" });
+}
+
+fn testOrganizeImportsNoAction(source: []const u8) !void {
+    var ctx: Context = try .init();
+    defer ctx.deinit();
+
+    const range: types.Range = .{
+        .start = .{ .line = 0, .character = 0 },
+        .end = offsets.indexToPosition(source, source.len, ctx.server.offset_encoding),
+    };
+
+    const uri = try ctx.addDocument(.{ .source = source });
+
+    const params: types.CodeAction.Params = .{
+        .textDocument = .{ .uri = uri.raw },
+        .range = range,
+        .context = .{
+            .diagnostics = &.{},
+            .only = &.{.@"source.organizeImports"},
+        },
+    };
+
+    @setEvalBranchQuota(5000);
+    const response = try ctx.server.sendRequestSync(ctx.arena.allocator(), "textDocument/codeAction", params) orelse return;
+
+    if (response.len != 0) {
+        std.debug.print("expected no organize-imports code action for already-organized source, got: {s}\n", .{response[0].code_action.title});
+        return error.UnexpectedOrganizeImportsAction;
+    }
 }
 
 fn testConvertString(before: []const u8, after: []const u8) !void {
