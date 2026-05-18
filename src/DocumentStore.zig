@@ -207,7 +207,7 @@ pub const Handle = struct {
                 /// to avoid checking build files multiple times, a bitset stores whether or
                 /// not the build file should be skipped because it has previously been
                 /// found to be "unassociated" with the handle.
-                has_been_checked: std.DynamicBitSetUnmanaged,
+                has_been_checked: std.bit_set.Dynamic,
             },
             /// The Handle has no associated build file (build.zig).
             none,
@@ -250,7 +250,7 @@ pub const Handle = struct {
                     return .none;
                 }
 
-                var has_been_checked: std.DynamicBitSetUnmanaged = try .initEmpty(document_store.allocator, potential_build_files.len);
+                var has_been_checked: std.bit_set.Dynamic = try .initEmpty(document_store.allocator, potential_build_files.len);
                 errdefer has_been_checked.deinit(document_store.allocator);
 
                 self.impl.associated_build_file = .{ .unresolved = .{
@@ -348,7 +348,7 @@ pub const Handle = struct {
 
         const modules = &build_config.modules.map;
 
-        var visted: std.DynamicBitSetUnmanaged = try .initEmpty(allocator, modules.count());
+        var visted: std.bit_set.Dynamic = try .initEmpty(allocator, modules.count());
         defer visted.deinit(allocator);
 
         var queue: std.ArrayList(usize) = try .initCapacity(allocator, 1);

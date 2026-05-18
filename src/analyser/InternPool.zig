@@ -115,11 +115,11 @@ pub const Key = union(enum) {
     pub const Function = struct {
         args: Index.Slice,
         /// zig only lets the first 32 arguments be `comptime`
-        args_is_comptime: std.StaticBitSet(32) = .empty,
+        args_is_comptime: std.bit_set.Static(32) = .empty,
         /// zig only lets the first 32 arguments be generic
-        args_is_generic: std.StaticBitSet(32) = .empty,
+        args_is_generic: std.bit_set.Static(32) = .empty,
         /// zig only lets the first 32 arguments be `noalias`
-        args_is_noalias: std.StaticBitSet(32) = .empty,
+        args_is_noalias: std.bit_set.Static(32) = .empty,
         return_type: Index,
         flags: Flags = .{},
 
@@ -1559,7 +1559,7 @@ fn addExtra(ip: *InternPool, comptime T: type, extra: T) Allocator.Error!u32 {
 
             u32,
             i32,
-            std.StaticBitSet(32),
+            std.bit_set.Static(32),
             Key.Pointer.Flags,
             Key.Pointer.PackedOffset,
             Key.Function.Flags,
@@ -1599,7 +1599,7 @@ fn extraData(ip: *const InternPool, comptime T: type, index: u32) T {
 
             u32,
             i32,
-            std.StaticBitSet(32),
+            std.bit_set.Static(32),
             Key.Pointer.Flags,
             Key.Pointer.PackedOffset,
             Key.Function.Flags,

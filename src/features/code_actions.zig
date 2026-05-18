@@ -836,7 +836,7 @@ pub fn getImportsDecls(builder: *Builder, allocator: std.mem.Allocator) error{Ou
 
     const root_decls = tree.rootDecls();
 
-    var skip_set: std.DynamicBitSetUnmanaged = try .initEmpty(allocator, root_decls.len);
+    var skip_set: std.bit_set.Dynamic = try .initEmpty(allocator, root_decls.len);
     defer skip_set.deinit(allocator);
 
     var imports: std.array_hash_map.Custom(ImportDecl, void, void, true) = .empty;
